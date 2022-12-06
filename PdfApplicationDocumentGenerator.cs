@@ -102,31 +102,32 @@ namespace Nml.Improve.Me
 												_ =>
 													" because of suspicious account behaviour. Please contact support ASAP."
 											};
-                        var inReviewApplicationViewModel = new InReviewApplicationViewModel
-                        {
-							ReferenceNumber = appvm.ReferenceNumber,
-							State = appvm.State,
-							FullName = string.Format($"{application.Person.FirstName} {application.Person.Surname}"),
-                            LegalEntity =
-                            application.IsLegalEntity ? application.LegalEntity : null,
-                            PortfolioFunds = application.Products.SelectMany(p => p.Funds),
-                            PortfolioTotalAmount = application.Products.SelectMany(p => p.Funds)
-                            .Select(f => (f.Amount - f.Fees) * _configuration.TaxRate)
-                            .Sum(),
-                            InReviewMessage = inReviewMessage,
-                            InReviewInformation = application.CurrentReview,
-							AppliedOn = appvm.AppliedOn,
-							SupportEmail = appvm.SupportEmail,
-							Signature = appvm.Signature
-						};
-                        view = View_Generator.GenerateFromPath($"{baseUri}{path}", inReviewApplicationViewModel);
+						var inReviewApplicationViewModel = new InReviewApplicationViewModel();
+						inReviewApplicationViewModel.ReferenceNumber = application.ReferenceNumber;
+						inReviewApplicationViewModel.State = application.State.ToDescription();
+						inReviewApplicationViewModel.FullName = string.Format(
+							"{0} {1}",
+							application.Person.FirstName,
+							application.Person.Surname);
+						inReviewApplicationViewModel.LegalEntity =
+							application.IsLegalEntity ? application.LegalEntity : null;
+						inReviewApplicationViewModel.PortfolioFunds = application.Products.SelectMany(p => p.Funds);
+						inReviewApplicationViewModel.PortfolioTotalAmount = application.Products.SelectMany(p => p.Funds)
+							.Select(f => (f.Amount - f.Fees) * _configuration.TaxRate)
+							.Sum();
+						inReviewApplicationViewModel.InReviewMessage = inReviewMessage;
+						inReviewApplicationViewModel.InReviewInformation = application.CurrentReview;
+						inReviewApplicationViewModel.AppliedOn = application.Date;
+						inReviewApplicationViewModel.SupportEmail = _configuration.SupportEmail;
+						inReviewApplicationViewModel.Signature = _configuration.Signature;
+						view = View_Generator.GenerateFromPath($"{baseUri}{path}", inReviewApplicationViewModel);
 						break;
 
 					default:
 						_logger.LogWarning(
 										$"The application is in state '{application.State}' and no valid document can be generated for it.");
 						return null;
-						//break;
+						
 				}
 
 				var pdfOptions = new PdfOptions
